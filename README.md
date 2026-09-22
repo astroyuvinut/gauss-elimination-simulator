@@ -34,6 +34,7 @@ one continuous simulation.
 pip install -r requirements.txt
 python -m pytest -q        # solver tests
 python app.py              # http://127.0.0.1:7860
+python app.py --share      # also prints a public https://....gradio.live link (valid 1 week)
 ```
 
 No LaTeX needed: all on-screen text uses Manim `Text`. Clips are cached in

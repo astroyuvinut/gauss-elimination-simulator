@@ -12,6 +12,7 @@ from __future__ import annotations
 import html
 import json
 import os
+import sys
 import tempfile
 import uuid
 from pathlib import Path
@@ -233,4 +234,5 @@ if __name__ == "__main__":
     demo.queue(default_concurrency_limit=2).launch(
         head=HEAD, css=CSS, allowed_paths=[str(CACHE_DIR)],
         server_name=os.environ.get("GRADIO_SERVER_NAME", "127.0.0.1"),
+        share="--share" in sys.argv,  # python app.py --share -> public *.gradio.live link
     )
