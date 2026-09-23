@@ -21,6 +21,7 @@ from urllib.parse import quote
 import gradio as gr
 
 from pipeline import METHOD_LABEL, simulate
+from plot3d import final_figure
 from scenes import ROW_COLORS
 from solver import describe_solution, fmt, parse_matrix, var_names
 
@@ -203,13 +204,14 @@ def run(matrix_text: str, method_label: str):
         raise gr.Error(str(e))
     run_id = uuid.uuid4().hex
     items: list[dict] = []
-    yield queue_html(run_id, items, False), "Rendering the first step…"
+    yield queue_html(run_id, items, False), "Rendering the first step…", gr.update(value=None, visible=False)
     for path, spec, i, n, res in simulate(A, METHODS[method_label], CACHE_DIR):
         items.append({"url": file_url(path), "panel": panel_html(spec, res, i, n)})
         done = i == n - 1
         status = (f"**{describe_solution(res.solution)}**" if done
                   else f"Rendered {i + 1} of {n} clips…")
-        yield queue_html(run_id, items, done), status
+        view = gr.update(value=final_figure(res), visible=True) if done else gr.update()
+        yield queue_html(run_id, items, done), status, view
 
 
 with gr.Blocks(title="Gauss Elimination Simulator") as demo:
@@ -224,10 +226,11 @@ with gr.Blocks(title="Gauss Elimination Simulator") as demo:
     gr.HTML(PLAYER)
     status = gr.Markdown()
     queue = gr.HTML(elem_id="clip-queue")
+    view3d = gr.Plot(label="Final result in 3D (drag to rotate)", visible=False)
     gr.Examples(EXAMPLES, [matrix_in, method_in],
                 label="Examples: unique · zero pivot (swap) · infinite · no solution")
-    run_btn.click(run, [matrix_in, method_in], [queue, status])
-    matrix_in.submit(run, [matrix_in, method_in], [queue, status])
+    run_btn.click(run, [matrix_in, method_in], [queue, status, view3d])
+    matrix_in.submit(run, [matrix_in, method_in], [queue, status, view3d])
 
 
 if __name__ == "__main__":
